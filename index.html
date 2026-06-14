@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sala Con Interruptor</title>
+    <style>
+        :root {
+            --bg-night: #0b1220;
+            --bg-day: #1a2538;
+            --wall-off: #233045;
+            --wall-on: #445a78;
+            --lamp-off: #6a7280;
+            --lamp-on: #ffe178;
+            --switch-bg: #d4dbe7;
+            --switch-shadow: #9ca7ba;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at 25% 15%, #22314a 0%, var(--bg-night) 55%);
+            transition: background 0.5s ease;
+            overflow: hidden;
+        }
+
+        .scene {
+            position: relative;
+            width: min(92vw, 900px);
+            aspect-ratio: 16 / 10;
+            border-radius: 20px;
+            background: linear-gradient(180deg, #10182a 0%, #0f1624 100%);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .wall {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, var(--wall-off) 0%, #192334 100%);
+            transition: background 0.5s ease;
+        }
+
+        .floor {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 30%;
+            background: linear-gradient(180deg, #1a2436 0%, #101726 100%);
+            border-top: 3px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .lamp-cable {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 140px;
+            background: linear-gradient(180deg, #2a3039, #525967);
+        }
+
+        .lamp {
+            position: absolute;
+            top: 125px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 70px;
+            border-radius: 0 0 70px 70px;
+            background: linear-gradient(180deg, #7d8592 0%, #4f5662 100%);
+            z-index: 4;
+        }
+
+        .bulb {
+            position: absolute;
+            top: 180px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #f0f3f8 0%, var(--lamp-off) 72%);
+            box-shadow: inset 0 -7px 10px rgba(0, 0, 0, 0.25);
+            z-index: 5;
+            transition: all 0.4s ease;
+        }
+
+        .light-cone {
+            position: absolute;
+            top: 198px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 420px;
+            height: 380px;
+            background: radial-gradient(ellipse at top, rgba(255, 229, 141, 0.66) 0%, rgba(255, 229, 141, 0.23) 35%, rgba(255, 229, 141, 0) 72%);
+            opacity: 0;
+            transition: opacity 0.45s ease;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .switch-panel {
+            position: absolute;
+            right: 64px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 90px;
+            height: 160px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, var(--switch-bg) 0%, #aeb9cd 100%);
+            box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.18), 0 10px 16px rgba(0, 0, 0, 0.25);
+            display: grid;
+            place-items: center;
+            z-index: 6;
+        }
+
+        .switch {
+            width: 34px;
+            height: 88px;
+            border: none;
+            border-radius: 18px;
+            background: linear-gradient(180deg, #f4f7ff 0%, #bcc7d9 100%);
+            cursor: pointer;
+            position: relative;
+            padding: 0;
+            box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.18), 0 4px 7px rgba(0, 0, 0, 0.25);
+            transition: transform 0.16s ease;
+        }
+
+        .switch:active {
+            transform: scale(0.97);
+        }
+
+        .switch::after {
+            content: "";
+            position: absolute;
+            left: 4px;
+            width: 26px;
+            height: 42px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #ffffff 0%, #d9e1f1 100%);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
+            top: 5px;
+            transition: top 0.28s ease;
+        }
+
+        .status {
+            position: absolute;
+            left: 28px;
+            top: 24px;
+            color: #d7e2fb;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            z-index: 7;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        .ghost {
+            position: absolute;
+            left: 90px;
+            top: 320px;
+            width: 86px;
+            height: 112px;
+            background: linear-gradient(180deg, rgba(230, 240, 255, 0.92) 0%, rgba(180, 200, 235, 0.85) 100%);
+            border-radius: 46px 46px 26px 26px;
+            opacity: 0.9;
+            transform: translateY(0);
+            transition: opacity 0.35s ease;
+            animation: float 2.2s ease-in-out infinite;
+            z-index: 3;
+            box-shadow: 0 0 24px rgba(172, 205, 255, 0.4);
+            pointer-events: none;
+        }
+
+        .ghost::before,
+        .ghost::after {
+            content: "";
+            position: absolute;
+            top: 40px;
+            width: 10px;
+            height: 12px;
+            border-radius: 50%;
+            background: #21304a;
+        }
+
+        .ghost::before {
+            left: 26px;
+        }
+
+        .ghost::after {
+            right: 26px;
+        }
+
+        .ghost-mouth {
+            position: absolute;
+            top: 66px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 18px;
+            height: 22px;
+            border-radius: 50%;
+            background: #2a3a57;
+            opacity: 0.85;
+        }
+
+        .ghost-tail {
+            position: absolute;
+            bottom: -12px;
+            left: 0;
+            right: 0;
+            height: 26px;
+            background:
+                radial-gradient(circle at 14% 0, rgba(230, 240, 255, 0.95) 0 18px, transparent 18px),
+                radial-gradient(circle at 38% 0, rgba(210, 225, 250, 0.92) 0 18px, transparent 18px),
+                radial-gradient(circle at 62% 0, rgba(230, 240, 255, 0.95) 0 18px, transparent 18px),
+                radial-gradient(circle at 86% 0, rgba(210, 225, 250, 0.92) 0 18px, transparent 18px);
+        }
+
+        .scene.on .wall {
+            background: linear-gradient(180deg, var(--wall-on) 0%, #324a69 100%);
+        }
+
+        .scene.on .light-cone {
+            opacity: 1;
+        }
+
+        .scene.on .bulb {
+            background: radial-gradient(circle at 35% 30%, #fffef0 0%, var(--lamp-on) 68%);
+            box-shadow: 0 0 28px rgba(255, 225, 120, 0.9), 0 0 70px rgba(255, 225, 120, 0.5);
+        }
+
+        .scene.on .switch::after {
+            top: 41px;
+        }
+
+        .scene.on .ghost {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .scene.on {
+            box-shadow: 0 34px 66px rgba(0, 0, 0, 0.4), 0 0 80px rgba(255, 212, 93, 0.13);
+        }
+
+        body.on {
+            background: radial-gradient(circle at 25% 15%, #3e5473 0%, var(--bg-day) 58%);
+        }
+
+        @media (max-width: 720px) {
+            .switch-panel {
+                right: 20px;
+                width: 82px;
+                height: 146px;
+            }
+
+            .ghost {
+                left: 24px;
+                top: 310px;
+            }
+
+            .status {
+                left: 14px;
+                font-size: 14px;
+            }
+
+            .light-cone {
+                width: 330px;
+                height: 300px;
+            }
+        }
+
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-12px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="scene" id="scene">
+        <div class="wall"></div>
+        <div class="floor"></div>
+
+        <div class="lamp-cable"></div>
+        <div class="lamp"></div>
+        <div class="bulb"></div>
+        <div class="light-cone"></div>
+
+        <div class="ghost" aria-hidden="true">
+            <div class="ghost-mouth"></div>
+            <div class="ghost-tail"></div>
+        </div>
+
+        <p class="status" id="status">Lampara apagada</p>
+
+        <div class="switch-panel">
+            <button class="switch" id="toggle" aria-label="Interruptor de luz"></button>
+        </div>
+    </div>
+
+    <script>
+        const scene = document.getElementById("scene");
+        const toggle = document.getElementById("toggle");
+        const statusText = document.getElementById("status");
+        const ghost = document.querySelector(".ghost");
+
+        let isOn = true;
+        let audioCtx = null;
+        let ghostX = 90;
+        let ghostY = 320;
+        let targetGhostX = 90;
+        let targetGhostY = 320;
+
+        function clamp(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
+
+        function moveGhost() {
+            ghostX += (targetGhostX - ghostX) * 0.12;
+            ghostY += (targetGhostY - ghostY) * 0.12;
+            ghost.style.left = `${ghostX}px`;
+            ghost.style.top = `${ghostY}px`;
+            requestAnimationFrame(moveGhost);
+        }
+
+        function playSpookySound() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            if (audioCtx.state === "suspended") {
+                audioCtx.resume();
+            }
+
+            const now = audioCtx.currentTime + 0.02;
+            const duration = 4.8;
+
+            const master = audioCtx.createGain();
+            master.gain.setValueAtTime(0.0001, now);
+            master.gain.exponentialRampToValueAtTime(0.85, now + 0.2);
+            master.gain.exponentialRampToValueAtTime(0.5, now + duration * 0.75);
+            master.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+            const compressor = audioCtx.createDynamicsCompressor();
+            compressor.threshold.value = -22;
+            compressor.knee.value = 15;
+            compressor.ratio.value = 4;
+            compressor.attack.value = 0.01;
+            compressor.release.value = 0.25;
+
+            master.connect(compressor);
+            compressor.connect(audioCtx.destination);
+
+            const oscA = audioCtx.createOscillator();
+            oscA.type = "sawtooth";
+            oscA.frequency.setValueAtTime(110, now);
+            oscA.frequency.exponentialRampToValueAtTime(48, now + duration * 0.9);
+
+            const oscB = audioCtx.createOscillator();
+            oscB.type = "triangle";
+            oscB.frequency.setValueAtTime(72, now);
+            oscB.frequency.exponentialRampToValueAtTime(33, now + duration);
+
+            const oscSub = audioCtx.createOscillator();
+            oscSub.type = "sine";
+            oscSub.frequency.setValueAtTime(46, now);
+            oscSub.frequency.exponentialRampToValueAtTime(28, now + duration);
+
+            const oscPresence = audioCtx.createOscillator();
+            oscPresence.type = "square";
+            oscPresence.frequency.setValueAtTime(190, now);
+            oscPresence.frequency.exponentialRampToValueAtTime(120, now + duration * 0.8);
+
+            const presenceGain = audioCtx.createGain();
+            presenceGain.gain.setValueAtTime(0.16, now);
+            presenceGain.gain.exponentialRampToValueAtTime(0.08, now + duration);
+
+            const noiseBuffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * duration), audioCtx.sampleRate);
+            const noiseData = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < noiseData.length; i++) {
+                noiseData[i] = (Math.random() * 2 - 1) * 0.32;
+            }
+
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = noiseBuffer;
+
+            const noiseFilter = audioCtx.createBiquadFilter();
+            noiseFilter.type = "bandpass";
+            noiseFilter.frequency.setValueAtTime(260, now);
+            noiseFilter.Q.value = 0.7;
+
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0.001, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.12, now + 0.25);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+            const lfo = audioCtx.createOscillator();
+            lfo.type = "sine";
+            lfo.frequency.value = 2.2;
+
+            const lfoGain = audioCtx.createGain();
+            lfoGain.gain.value = 9;
+
+            lfo.connect(lfoGain);
+            lfoGain.connect(oscA.frequency);
+
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = "lowpass";
+            filter.frequency.setValueAtTime(900, now);
+            filter.frequency.exponentialRampToValueAtTime(160, now + duration);
+
+            oscA.connect(filter);
+            oscB.connect(filter);
+            oscSub.connect(filter);
+            oscPresence.connect(presenceGain);
+            presenceGain.connect(filter);
+
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(filter);
+            filter.connect(master);
+
+            oscA.start(now);
+            oscB.start(now);
+            oscSub.start(now);
+            oscPresence.start(now);
+            lfo.start(now);
+            noise.start(now);
+
+            oscA.stop(now + duration);
+            oscB.stop(now + duration);
+            oscSub.stop(now + duration);
+            oscPresence.stop(now + duration);
+            lfo.stop(now + duration);
+            noise.stop(now + duration);
+        }
+
+        function updateScene() {
+            scene.classList.toggle("on", isOn);
+            document.body.classList.toggle("on", isOn);
+            statusText.textContent = isOn ? "Lampara encendida" : "Lampara apagada";
+        }
+
+        toggle.addEventListener("click", () => {
+            isOn = !isOn;
+            updateScene();
+
+            if (!isOn) {
+                playSpookySound();
+            }
+        });
+
+        scene.addEventListener("pointermove", (event) => {
+            const rect = scene.getBoundingClientRect();
+            const localX = event.clientX - rect.left;
+            const localY = event.clientY - rect.top;
+
+            targetGhostX = clamp(localX - ghost.offsetWidth / 2, 12, rect.width - ghost.offsetWidth - 12);
+            targetGhostY = clamp(localY - ghost.offsetHeight / 2, 115, rect.height - ghost.offsetHeight - 20);
+        });
+
+        scene.addEventListener("pointerleave", () => {
+            targetGhostX = 90;
+            targetGhostY = 320;
+        });
+
+        updateScene();
+        moveGhost();
+    </script>
+</body>
+</html>
