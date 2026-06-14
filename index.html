@@ -182,6 +182,26 @@
             pointer-events: none;
         }
 
+        .ghost-2 {
+            width: 74px;
+            height: 96px;
+            opacity: 0.82;
+            animation-duration: 2.9s;
+            box-shadow: 0 0 20px rgba(146, 188, 255, 0.35);
+            filter: hue-rotate(18deg);
+        }
+
+        .ghost-2 .ghost-mouth {
+            width: 14px;
+            height: 18px;
+            top: 58px;
+        }
+
+        .ghost-2 .ghost-tail {
+            bottom: -10px;
+            height: 22px;
+        }
+
         .ghost::before,
         .ghost::after {
             content: "";
@@ -301,7 +321,12 @@
         <div class="bulb"></div>
         <div class="light-cone"></div>
 
-        <div class="ghost" aria-hidden="true">
+        <div class="ghost ghost-1" aria-hidden="true">
+            <div class="ghost-mouth"></div>
+            <div class="ghost-tail"></div>
+        </div>
+
+        <div class="ghost ghost-2" aria-hidden="true">
             <div class="ghost-mouth"></div>
             <div class="ghost-tail"></div>
         </div>
@@ -317,7 +342,8 @@
         const scene = document.getElementById("scene");
         const toggle = document.getElementById("toggle");
         const statusText = document.getElementById("status");
-        const ghost = document.querySelector(".ghost");
+        const ghost = document.querySelector(".ghost-1");
+        const ghostTwo = document.querySelector(".ghost-2");
 
         let isOn = true;
         let audioCtx = null;
@@ -325,6 +351,10 @@
         let ghostY = 320;
         let targetGhostX = 90;
         let targetGhostY = 320;
+        let ghostTwoX = 210;
+        let ghostTwoY = 260;
+        let targetGhostTwoX = 210;
+        let targetGhostTwoY = 260;
 
         function clamp(value, min, max) {
             return Math.min(Math.max(value, min), max);
@@ -335,6 +365,11 @@
             ghostY += (targetGhostY - ghostY) * 0.12;
             ghost.style.left = `${ghostX}px`;
             ghost.style.top = `${ghostY}px`;
+
+            ghostTwoX += (targetGhostTwoX - ghostTwoX) * 0.09;
+            ghostTwoY += (targetGhostTwoY - ghostTwoY) * 0.09;
+            ghostTwo.style.left = `${ghostTwoX}px`;
+            ghostTwo.style.top = `${ghostTwoY}px`;
             requestAnimationFrame(moveGhost);
         }
 
@@ -471,11 +506,16 @@
 
             targetGhostX = clamp(localX - ghost.offsetWidth / 2, 12, rect.width - ghost.offsetWidth - 12);
             targetGhostY = clamp(localY - ghost.offsetHeight / 2, 115, rect.height - ghost.offsetHeight - 20);
+
+            targetGhostTwoX = clamp(localX + 90 - ghostTwo.offsetWidth / 2, 12, rect.width - ghostTwo.offsetWidth - 12);
+            targetGhostTwoY = clamp(localY - 50 - ghostTwo.offsetHeight / 2, 115, rect.height - ghostTwo.offsetHeight - 20);
         });
 
         scene.addEventListener("pointerleave", () => {
             targetGhostX = 90;
             targetGhostY = 320;
+            targetGhostTwoX = 210;
+            targetGhostTwoY = 260;
         });
 
         updateScene();
